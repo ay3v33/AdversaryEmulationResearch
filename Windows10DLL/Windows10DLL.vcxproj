@@ -138,6 +138,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Config.hpp" />
+    <ClInclude Include="Obfuscator.hpp" />
     <ClInclude Include="secbuff.hpp" />
   </ItemGroup>
   <ItemGroup>

