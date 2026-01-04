@@ -4,9 +4,6 @@ This project, including all source code and documentation, is intended strictly 
 
 The code is provided "AS IS" without warranty of any kind. In no event shall the author be liable for any claim, damages, or other liability arising from the use of this software. By using this code, you agree that you are solely responsible for your actions and comply with all applicable local and international laws.
 
-## Project Goal
-As a computer science student I have become increasingly interested in cybersecurity and because I couldn't understand it, hacking was like magic to me. This has led me to put effort into understanding how practical hacks, that I have seen used maliciously towards people I know, are created and more importantly how to defend against them, and potentially even use them trace the attack back to the attacker. Many of the cybersecurity lessons I have gone through are extremely impractical, and are based around unrealistic scenarios, which makes it much harder to learn. I ultimately want to write this in a way that professionals and curious students like myself can understand.
-
 ## How it works
 ### How Windows EDR/AV works
 Normally, when a program calls a Windows API Function(like GetAsyncKeyState), which eventually transitions through ntdll.dll to reach the kernel. Security software "hooks" these functions, placing a jmp instruction at the start of the code that runs the anti-malware detection code before running the actual function. To avoid this "hooking" I used manual indirect syscalls. 
