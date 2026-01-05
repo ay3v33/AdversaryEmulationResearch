@@ -11,6 +11,7 @@ Normally, when a program calls a Windows API Function(like GetAsyncKeyState), wh
 ## The Manual Syscall
 This is the specific function that is bypassing the hook:
 Parameters are (key, keySSN, trustedGadget)
+
 `
 DirectSyscallBridge PROC
     mov r10, rcx
