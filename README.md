@@ -11,11 +11,13 @@ Normally, when a program calls a Windows API Function(like GetAsyncKeyState), wh
 ## The Manual Syscall
 This is the specific function that is bypassing the hook:
 Parameters are (key, keySSN, trustedGadget)
+`
 DirectSyscallBridge PROC
     mov r10, rcx
     mov eax, edx
     jmp r8
 DirectSyscallBridge ENDP
+`
 
 The mov r10, rcx instruction is vital because the syscall instruction automatically overwrites the rcx register with the return address. Moving the first parameter to r10 preserves the data so the Kernel can read it correctly.
 Moving edx into eax is telling the cpu I want to run the function that the keySSN parameter is holding.
